@@ -1,0 +1,29 @@
+#!/bin/sh
+DIR="$(date +"%Y-%m-%d")"
+mkdir $DIR
+cat >$DIR/note.tex << EOF
+\\documentclass[12pt]{article}
+\\usepackage{geometry}
+\\usepackage{amsmath}
+\\usepackage{amsthm}
+\\usepackage{amssymb}
+\\usepackage{mathrsfs}
+\\usepackage{parskip}
+\\usepackage{enumerate}
+\\usepackage{stmaryrd}
+\\usepackage{listings}
+\\usepackage{fullpage}
+
+\\begin{document}
+
+\\title{CS 350 Notes}
+\\author{Matthew Visser}
+\\date{`date +"%b %e, %Y"`}
+\\maketitle
+
+\\end{document}
+% vim: tw=80
+EOF
+
+
+

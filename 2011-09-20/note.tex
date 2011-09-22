@@ -1,0 +1,186 @@
+\documentclass[12pt]{article}
+\usepackage{geometry}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{mathrsfs}
+\usepackage{parskip}
+\usepackage{enumerate}
+\usepackage{stmaryrd}
+\usepackage{listings}
+\usepackage{fullpage}
+
+\begin{document}
+
+\title{CS 350 Notes}
+\author{Matthew Visser}
+\date{Sep 20, 2011}
+\maketitle
+
+\section{Threads}
+
+\subsection{Thread Interface}
+
+\begin{itemize} 
+    \item Fork -- create new
+    \item Exit -- destroy
+    \item Yield -- let another thread run, but reschedule at some point.
+    \item Sleep -- wait for an event
+    \item Wake-up -- make threads sleeping on an address wake up.
+\end{itemize}
+
+\subsection{Fork}
+
+Forking creates a new thread. It gives
+\begin{itemize}
+    \item A name -- for debugging
+    \item a function to execute -- has 2 arguments
+\end{itemize}
+
+This function needs to 
+\begin{enumerate}
+    \item Allocate a stack
+    \item Zero out the stack, store a pointer to the thread function on the
+        stack's thread context. Stored at address \texttt{40(sp)}.
+    \item Add thread to thread library. Create a \texttt{struct thread} for the
+        new thread in the thread library and store \texttt{sp} in the thread
+        structure.
+    \item Extra:
+        \begin{enumerate}
+            \item Pass parameters to thread function
+            \item Call \texttt{thread\_exit} when thread is done.
+        \end{enumerate}
+\end{enumerate}
+
+\subsection{Scheduling Threads}
+
+\begin{itemize}
+    \item FIFO -- maintains a queue of threads that are ready to be scheduled.
+        When a thread yields or forks, it's moved to the back of the queue.
+        Queue is stored in kernel data segment in library.
+\end{itemize}
+
+\subsubsection{Preemption}
+
+\begin{itemize}
+    \item \texttt{Yield()} allows programs to voluntarily pause
+    \item Sometimes it is desirable to make a thread stop running even if it
+        has not called \texttt{Yield()}.
+    \item an involuntary context switch is called \textit{preemption} of the
+        running thread.
+    \item To implement preemption, the thread library must have a means of
+        taking over control, even though the application has not called a thread
+        library function
+    \item This form of taking control is normally called \textit{interrupts}.
+    \item Easier to write code for a preemptive scheduler -- don't have to worry
+        about yielding CPU. Makes the job of a programmer simpler.
+\end{itemize}
+
+\subsubsection{Interrupts}
+
+\begin{itemize}
+    \item An event that occurs while a program executes
+    \item caused by system devices: timer, disk controller, network interface
+    \item When an interrupt occurs, hardware automatically transfers control to
+        a fixed location
+    \item At the memory location, the thread library places a procedure called
+        an \textit{interrupt handler}
+    \item The handler normally
+        \begin{enumerate}
+            \item Saves current thread context. This is saved on the stack of
+                the \textit{current} thread.
+            \item determines what device caused interrupt and performs specific
+                processing
+            \item restores saved thread context and resumes execution
+        \end{enumerate}
+\end{itemize}
+
+\subsubsection{Round-Robin Scheduling}
+
+\begin{itemize}
+    \item One example of preemptive scheduling.
+    \item Similar to FIFO, but is preemptive
+    \item Gives each thread a fixed time to execute before it is preempted.
+    \item The time it executes is called the \textit{scheduling quantum}.
+\end{itemize}
+
+To implement:
+\begin{itemize}
+    \item Suppose the timer generates an interrupt at $t$ time units
+    \item suppose the thread library wants a quantum $q=500t$
+    \item To implement this, the thread library can maintain a variable called
+        \texttt{running\_time} to track how long a thread has been running
+        \begin{itemize}
+            \item Reset to 0 when thread dispatched.
+            \item When an interrupt occurs, the timer-specific code can
+                increment \texttt{running\_time} and test its value, invoking
+                \texttt{Yield()} if the time is equal to $q$.
+        \end{itemize}
+    \item See slide 23 of \texttt{threads.pdf} to see a diagram of stack.
+\end{itemize}
+
+\section{Synchronization}
+
+\subsection{Concurrency} 
+
+\begin{itemize}
+    \item Threads run concurrently, share access to data, can run at the same
+        time.
+    \item Need to enforce \textit{mutual exclusion}.
+    \item The part of the program where a shared object is accessed is called
+        the \textit{critical section}.
+\end{itemize}
+
+\subsubsection{Mutual Exclusion}
+
+\begin{itemize}
+    \item Can ensure only one thread executes a critical section at a time.
+    \item Server techniques to enforce
+        \begin{itemize}
+            \item Exploit special hardware specific instructions
+            \item Use algorithms that rely on atomic loads and stores
+            \item Control interrupts to ensure threads are not preempted while
+                they are executing a critical section
+        \end{itemize}
+\end{itemize}
+
+\subsubsection{Disabling interrupts}
+
+On a uni-processor, only one thread is running at a time, so we can just disable
+interrupts.
+
+If the running thread enters a critical section, mutex can be violated if
+\begin{enumerate}
+    \item The thread is preempted
+    \item The scheduler chooses a different thread to run
+\end{enumerate}
+
+Since preemption is caused by timer interrupts, mutex can beenforced by
+disabling interrupts before a thread enters a critical section, and re-enabling
+them when the thread leaves the critical section.
+
+This is how OS/161 does this. It calls \texttt{splhigh()}.
+
+Pros:
+\begin{itemize}
+    \item Doesn't require hardware-specific synchronization instructions
+    \item Works for any number of threads
+\end{itemize}
+
+Cons:
+\begin{itemize}
+    \item Indistriminate: prevents all preemption.
+    \item Ignoring timer interrupts has side effects.
+    \item Will not enforce mutex on multi-processor.
+\end{itemize}
+
+\subsubsection{Priority Levels in MIPS}
+
+Has levels from $0 \to 15$. From 0 to 14, interrupts are enabled.
+\texttt{splhigh()} means to disable interrupts completely. The level is 15, and
+no other thread is higher priority.
+
+
+
+\end{document}
+% vim: tw=80

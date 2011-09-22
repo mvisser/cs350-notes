@@ -1,0 +1,64 @@
+\documentclass[12pt]{article}
+\usepackage{geometry}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{mathrsfs}
+\usepackage{parskip}
+\usepackage{enumerate}
+\usepackage{stmaryrd}
+\usepackage{listings}
+\usepackage{fullpage}
+\usepackage{hyperref}
+
+\begin{document}
+
+\title{CS 350 Notes}
+\author{Matthew Visser}
+\date{Sep 13, 2011}
+\maketitle
+
+\section*{Views of an OS}
+
+\subsection{Intro}
+
+\begin{itemize}
+    \item Web page: \url{http://www.student.cs.uwaterloo.ca/~cs350}
+    \item discussions on \textit{Piazza}
+    \item textbook
+        \begin{itemize}
+            \item \textit{Operating System Concepts} by Silberschatz, Galvin and
+                Gagne (8th ed.)
+            \item not relying in lecture, but important resource.
+        \end{itemize}
+    \item course notes: printouts of slides
+\end{itemize}
+
+\subsection{System View}
+
+\begin{itemize}
+    \item manage hardware resources
+    \item allocate resources
+    \item use resources it shares
+\end{itemize}
+
+\subsection{Implementation View}
+
+\begin{itemize}
+    \item concurrent - needs to be because it manages other programs
+    \item hardware interactions impose time constraints
+\end{itemize}
+
+\subsection*{Terminology}
+
+\begin{description}
+    \item[kernel] \hfill\\
+        Part of the OS that responds to system calls, interupts, etc.
+    \item[operating system] \hfill\\
+        The whole includes kernel and may include other related programs that
+        provide services e.g. ls, cd.
+\end{description}
+
+
+\end{document}
+% vim: tw=80

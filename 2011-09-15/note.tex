@@ -1,0 +1,108 @@
+\documentclass[12pt]{article}
+\usepackage{geometry}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{mathrsfs}
+\usepackage{parskip}
+\usepackage{enumerate}
+\usepackage{stmaryrd}
+\usepackage{listings}
+\usepackage{fullpage}
+
+\begin{document}
+
+\title{CS 350 Notes}
+\author{Matthew Visser}
+\date{Sep 15, 2011}
+\maketitle
+
+\newcommand{\ie}{\textit{i.e.}}
+\section{Program Execution}
+
+\begin{itemize}
+    \item Registers
+        \begin{itemize}
+            \item  Has program counter, stack pointer, data for operations
+        \end{itemize}
+    \item Memory
+        \begin{itemize}
+            \item Stack frame: contains activation records, control flow, state
+                of program.
+                \begin{enumerate}
+                    \item Local variables
+                    \item Return address
+                    \item Function parameters
+                \end{enumerate}
+            \item Program code
+            \item program data
+        \end{itemize}
+    \item CPU
+\end{itemize}
+
+\section{MIPS Register Usage}
+
+See \texttt{kern/arch/mips/include/asmdefs.h} and slides \texttt{threads.pdf}
+page 2-3.
+
+\section{Threads}
+
+\begin{itemize}
+    \item Represents the control state of a program
+    \item Has an associated \textit{context} which consists of:
+        \begin{itemize}
+            \item CPU state, including program counter, stack pointer,
+                registers, execution mode (privilege)
+            \item a stack, which is located in address space of thread's process
+        \end{itemize}
+    \item In short, contains all information you would need to suspend a program
+        and then resume it later i.e.\ stack and cpu registers.
+\end{itemize}
+
+\subsection{Advantages}
+\begin{itemize}
+    \item Don't have to wait for a program that will take a long time, can
+        switch between that and doing something useful.
+    \item Take advantage of multi CPU
+\end{itemize}
+
+\subsection{Definitions}
+\begin{description}
+    \item[Thread Library:] Code that manages threads.
+    \item[Thread Control Block:] Data structure that stores thread context.
+\end{description}
+
+\subsection{Notes}
+
+\begin{itemize}
+    \item OS/161 stores register values on stack, just stores stack pointer.
+\end{itemize}
+
+\subsection{Context Switching}
+
+\begin{description}
+    \item[Context Switching:] The act of pausing one thread, and resuming or
+        starting another.
+\end{description}
+
+What happens during this?
+\begin{enumerate}
+    \item Save context
+    \item Decide what runs next (Scheduler)
+    \item Restore context of thread to run next \ie\ 
+        \textit{Dispatching} a new thread.
+\end{enumerate}
+
+This is
+\begin{itemize}
+    \item Architecture specific
+    \item Thread must save/restore carefully, since context changes often
+    \item Can be tricky to understand because it's hard to define what point a
+        thread stops in, and when it resumes.
+\end{itemize}
+
+When the context switch happens, the dispatching function returns to the yield
+function of the \textit{new} thread, not the old one.
+
+\end{document}
+% vim: tw=80
