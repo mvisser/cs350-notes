@@ -1,0 +1,84 @@
+\documentclass[12pt]{article}
+\usepackage{geometry}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{mathrsfs}
+\usepackage{parskip}
+\usepackage{enumerate}
+\usepackage{stmaryrd}
+\usepackage{listings}
+\usepackage{fullpage}
+
+\begin{document}
+
+\title{CS 350 Notes}
+\author{Matthew Visser}
+\date{Sep 22, 2011}
+\maketitle
+
+\section{Mutual Exclusion}
+
+\begin{itemize}
+    \item A thread can be preempted at any time in Peterson's algorithm.
+    \item Peterson's algorithm only works for two threads. 
+\end{itemize}
+
+\subsection{Starvation}
+
+A thread may never get to execute because of the way that the synchronization
+algorithm or scheduler works.
+
+Can use special instructions:
+\begin{itemize}
+    \item Test-and-set
+    \item Swap
+\end{itemize}
+
+\subsection{Test-and-Set}
+
+Sets the value of a memory location and applies a condition on the old value.
+Since this is atomic, only one thread will execute it first, leaving the others
+with the new value.
+
+\subsection{Swap}
+
+Can swap and then test old value.
+
+\subsection{How do we wait until it's our turn?}
+
+You can either spin or block. Spinning is busy waiting, such as
+\texttt{while( condition ) ;}. Blocking is sleeping. If you don't expect to spin
+for long, then it may be better to spin than yield. Otherwise, if it will take a
+long time, it may be better to yeild.
+
+\section{Other Synchronization Primitives}
+
+\subsection{Semaphores}
+
+\begin{itemize}
+    \item Can be used to enforce mutual exclusion requirements. It can also
+        enforce other synchronization problems.
+    \item Has integer value and supports two operations:
+        \begin{itemize}
+            \item P $\to$ Wait --- call this before starting the critical
+                section.
+            \item V $\to$ Signal --- call this after leaving the critical
+                section.
+        \end{itemize}
+    \item Can allow multiple threads to access a critical section, but limit the
+        number.
+    \item Need to enforce that \texttt{P()} and \texttt{V()} are atomic. If on a multi-core CPU,
+        \texttt{P()} \texttt{V()} themselves are critical sections.
+\end{itemize}
+
+\subsection{Thread Blocking in OS161}
+\begin{itemize}
+    \item \texttt{thread\_sleep(const void *addr)} --- sleeps the current thread.
+    \item \texttt{thread\_wakeup(const void *addr)} --- wakes up \underline{all}
+        threads that are sleeping on \texttt{addr}.
+\end{itemize}
+
+
+\end{document}
+% vim: tw=80
