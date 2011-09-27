@@ -1,0 +1,116 @@
+\documentclass[12pt]{article}
+\usepackage{geometry}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{mathrsfs}
+\usepackage{parskip}
+\usepackage{enumerate}
+\usepackage{stmaryrd}
+\usepackage{listings}
+\usepackage{fullpage}
+
+\begin{document}
+
+\title{CS 350 Notes}
+\author{Matthew Visser}
+\date{Sep 27, 2011}
+\maketitle
+
+\section{Semaphores}
+
+\subsection{The Producer-Consumer Problem}
+
+Producers add items (to a list) and consumers consume them.
+
+Need to be careful how you apply semaphores, if you reverse an order or don't
+think about them, you could end up with thread blocking.
+
+You also don't want consumers continually creating items. You can limit this
+with a semaphore in the other direction.
+
+There are many types of synchronization problems:
+\begin{itemize}
+    \item Dining philosopher
+    \item Sleeping barber
+    \item Cigarette smoker
+    \item Readers and Writers
+\end{itemize}
+
+\section{Locks}
+
+Locks are used to enforce mutual exclusion. You can use them in OS/161 by
+calling \texttt{lock\_aquire()} and \texttt{lock\_release()}.
+
+The implementation needs to enforce that the thread that acquires the lock is
+the thread that releases the lock.
+
+\section{Condition Variables}
+
+A thread can call three operations
+\begin{description}
+    \item[wait:] Causes a thread to wait for a condition. Releases the lock it
+        has on the critical section. The lock is re-acquired before returning
+        from the wait procedure.
+    \item[signal] If threads are blocked, one of them will be unblocked.
+    \item[broadcast]  If threads are blocked, all of them are unblocked.
+\end{description}
+
+There are two semantics of using condition variables:
+\begin{description}
+    \item[Mesa Semantics:] Signalling thread stays in its CS. Waiting thread
+        must wait for signalling thread and possibly other threads after
+        unblocked.
+    \item[Hoare Semantics:] Signalling thread leaves CS and waiting thread
+        atomically enters its CS.
+\end{description}
+
+Semaphores accumulate calls to \texttt{V()}. Condition variables do not
+accumulate, they either broadcast or signal.
+
+\section{Monitors}
+
+You can simulate having monitors by using a design pattern and code conventions,
+listed on slide 30 of \texttt{synch.pdf}.
+
+\section{Dead Locks}
+
+Dead locks can occur when you have multi-threaded code. This type of problem
+happens when two threads are permanently waiting for each other. This usually
+happens when a thread holds one resource, and asks for another.
+
+\textbf{Desirable properties in multi-threaded programs are:}
+\begin{itemize}
+    \item Safety -- threads are properly synchronized.
+    \item Liveness -- threads all make progress (eventually). There are three
+        violations to this:
+        \begin{itemize}
+            \item Starvation
+            \item Dead Lock
+            \item Live Lock
+        \end{itemize}
+        Having a cycle in resource allocation is a necessary condition for a
+        dead lock, but it isn't sufficient.
+\end{itemize}
+
+\subsection{Dead Lock Prevention}
+
+\begin{description}
+    \item[No Hold and Wait:] Only request resources one at a time, if requesting
+        multiple, request at once.
+    \item[Preemption:]  Take resources away from a thread and give them to
+        another.
+    \item[Resource Ordering:] Assign each resource a number. Always request them
+        in increasing order, \textit{i.e.}, always request lock A before lock B,
+        no matter what thread or function.
+\end{description}
+
+\subsection{Dead Lock Recovery}
+
+Need to detect there is a deadlock, then terminate one thread causing the lock.
+
+
+
+
+\end{document}
+% vim: tw=80
