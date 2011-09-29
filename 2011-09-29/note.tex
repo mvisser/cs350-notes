@@ -1,0 +1,167 @@
+\documentclass[12pt]{article}
+\usepackage{geometry}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{mathrsfs}
+\usepackage{parskip}
+\usepackage{enumerate}
+\usepackage{stmaryrd}
+\usepackage{listings}
+\usepackage{fullpage}
+
+\begin{document}
+
+\title{CS 350 Notes}
+\author{Matthew Visser}
+\date{Sep 29, 2011}
+\maketitle
+
+\section{Deadlocks}
+
+Use ``no hold and wait'' and ``resource ordering'' in OS/161.
+
+\subsection{Deadlock Detection and Recovery}
+
+Determine if there is a deadlock and terminate a thread.  The thread you
+terminate doesn't matter, it's a choice that's up to the scheduler. Ideally
+choose one that makes sense with regard to resources, but there are trade-offs.
+
+We can decide if the system is deadlocked by looking at a resource allocation
+graph. We want an algorithm that looks at these graphs and tries to make the
+same decisions about them. We can define state by
+\begin{itemize}
+    \item $D_i$ demand vector for thread $T_i$.
+    \item $A_i$ current allocation for thread $T_i$.
+    \item $U$ unallocated resources
+\end{itemize}
+We also have $R$ for a scratch resource and $f_i$ a boolean that determines if
+$T_i$ can finish.
+
+See the algorithm on slide 38 of \texttt{synch.pdf}.
+
+\section{C Programming Tips}
+
+\subsection{Modular Code}
+
+The OS/161 source tree is separated into different modules with
+\texttt{.h} (headers with function prototypes and type declarations) and
+\texttt{.c} files (with function definitions and global variables.)
+
+These modules will be using and calling each other. When one module uses
+another, all it cares about is the header file and what is defined there. For
+example, using \texttt{synch.h} with \texttt{\#include "synch.h"}, will give you
+all of the functions in that header file.
+
+\subsection{Arrays and Pointers}
+
+Consider the code:
+\begin{verbatim}
+int a[5];
+int x;
+int *p;
+\end{verbatim}
+
+The definition of \texttt{a} is an array that holds 5 integers on the stack.
+The variable \texttt{a} is actually just a pointer to the first address in the
+array, so \texttt{*a} is equivalent to \texttt{a[0]}. \texttt{*(a+1)} is
+equivalent to \texttt{a[1]}.
+
+A pointer can be set tothe value of another pointer, such as \texttt{p = a}, or
+to the address of a variable such as \texttt{p = \&x}. It can also be equal to
+an allocated array pointer by doing
+\begin{verbatim}
+p = (int *) malloc( 16 * sizeof(int));
+\end{verbatim}
+
+In OS/161 we will use \texttt{kmalloc} instead of \texttt{malloc}.  We will also
+use \texttt{kprintf} instead of \texttt{printf}.
+
+\subsection{The \texttt{const} Keyword}
+
+We can declare a variable that should never change like this
+\begin{verbatim}
+const int x = 5;
+const int *x;
+int * const x;
+\end{verbatim}
+The first is a constant number. The second is a pointer to a constant integer.
+The third is a pointer that is constant, that points to an integer value. A
+trick to understand this is to read from right to left.
+
+\subsection{Other Notes}
+
+\begin{itemize}
+    \item Don't access pointers after they have been freed
+    \item Don't return a pointer to a variable on the stack, \textit{i.e.}, a
+        variable in the argument list or declared in the function without
+        \texttt{kmalloc}.
+\end{itemize}
+
+\section{Processes}
+
+A \textbf{process} is an abstraction of a program in execution. It contains
+\begin{itemize}
+    \item An address space
+    \item one or more thread of execution
+    \item Other resources such as files, sockets, attributes, \textit{etc.}
+\end{itemize}
+
+A process is a user level program, not something in the kernel.
+
+\subsection{Multiprogramming}
+
+\begin{itemize}
+    \item Means having multiple processes at the same time
+    \item Most modern computers do this
+    \item All processes share the resources of the machine.  The kernel needs to
+        co-ordinate these resources.
+    \item Processes \emph{timeshare} the processor. This is controlled by the
+        operating system.
+    \item The OS ensures that processes are isolated from each other.
+        Interprocess communication should be possible, but only when explicitly
+        requested by the processes.
+\end{itemize}
+
+\section{The Kernel}
+
+\begin{itemize}
+    \item The kernel is a program with code and data.
+    \item The kernel runs in a privileged execution mode, while other programs
+        don't. This is a special mode offered by the CPU.
+    \item The hardware has to switch between privileged execution mode and user
+        mode.
+    \item What does privileged mode mean? What can we do with it?
+        \begin{itemize}
+            \item control hardware: disable interrupts, halt the machine,\dots
+            \item protect and isolate itself (the kernel) from processes.
+        \end{itemize}
+    \item privileges vary from platform.
+\end{itemize}
+
+\section{System Calls}
+
+\begin{itemize}
+    \item Interface between processes and the kernel. They allow a process to
+        tell the kernel they want a resource or to do something with hardware.
+    \item The process can use this to do things like
+        \begin{itemize}
+            \item Open a file: \texttt{opn}
+            \item create a pipe: \texttt{write}
+            \item Create another process: \texttt{fork}
+            \item increase address space: \texttt{brk}
+        \end{itemize}
+    \item This is done by calling a special instruction (\texttt{syscall} in
+        MIPS) This jumps to a specific address in the kernel. This address in
+        MIPS is \texttt{0x80000080}.
+    \item We don't want user code to jump in arbitrary addresses in the kernel
+        code, but this is prevented by the fixed address.
+\end{itemize}
+
+
+
+
+
+
+\end{document}
+% vim: tw=80
