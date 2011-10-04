@@ -1,0 +1,120 @@
+\documentclass[12pt]{article}
+\usepackage{geometry}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{mathrsfs}
+\usepackage{parskip}
+\usepackage{enumerate}
+\usepackage{stmaryrd}
+\usepackage{listings}
+\usepackage{fullpage}
+\usepackage{qtree}
+
+\begin{document}
+
+\title{CS 350 Notes}
+\author{Matthew Visser}
+\date{Oct  4, 2011}
+\maketitle
+
+\section{Assignment Issues}
+
+\subsection{Errors in A1}
+
+If you detect an error, you can
+\begin{itemize}
+	\item assert
+	\item panic
+	\item fail silently
+	\item put return values in the lock struct.
+\end{itemize}
+
+In other settings you might be able to change return values, but since the API
+is define dfor us, we can't.
+
+\subsection{\texttt{sy2} Test}
+
+Will run the lock test. This test passing once does not guarantee that your lock
+implementation is correct.
+
+\section{System Calls}
+
+There are 3 ways to enter the kernel:
+\begin{itemize}
+	\item syscalls
+	\item interrupts
+	\item exceptions
+\end{itemize}
+
+On MIPS, these all jump to \texttt{0x80000080}.
+
+\subsection{The Exception Handler}
+
+Every thread has two stacks, one in user mode and one in kernel mode. The thread
+library points to the kernel stack.
+
+The exception handler does the following:
+\begin{enumerate}
+	\item allocates a trap fram on thread's kernel stack and saves user-level
+		application's state.
+	\item calls \texttt{mips\_trap}
+	\item when this returns, restores application and processor state
+	\item issues MIPS \texttt{jr} and \texttt{rfe} instructions to return
+		control to application.
+\end{enumerate}
+
+The calling code can either call an exception, interrupt, or syscall.
+
+\Tree
+[
+.{\texttt{0x80000080}}
+[
+.{exception (asm)}
+[
+.{\texttt{common\_exception} (asm)}
+[
+.{\texttt{mips\_trap} (C)}
+\texttt{mips\_syscall()}
+\texttt{mips\_interrupt()}
+\texttt{mips\_exception()}
+]]]]
+
+A syscall returns an error code and an optional return value. Pass a pointer to
+the return value variable to the syscall functions to be able to change it. This
+is OK because nothing other than \texttt{mips\_syscall()} will be calling it.
+
+\section{Exceptions and Interrupts}
+
+\subsection{Exceptions}
+
+\begin{itemize}
+	\item Conditions that occur during execution of user code
+	\item Detected by hardware.
+	\item hardware calls exception handler
+	\item examples are
+		\begin{itemize}
+			\item page faults
+			\item divide by zero
+		\end{itemize}
+\end{itemize}
+
+\subsection{Alignment}
+
+When we load or store, we need to load or store from an alignment that's
+divisible by the size of the register.  Unaligned memory causes exceptions.
+
+\subsection{Interrupts}
+
+\begin{itemize}
+	\item A third mechanism to enter kernel code
+	\item similar to exceptions, but caused by hardware devices, not program
+		execution:
+		\begin{itemize}
+			\item Network interface may generate an interrupt
+			\item hard drive
+		\end{itemize}
+\end{itemize}
+
+\end{document}
+% vim: tw=80
