@@ -1,0 +1,137 @@
+\documentclass[12pt]{article}
+\usepackage{geometry}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{mathrsfs}
+\usepackage{parskip}
+\usepackage{enumerate}
+\usepackage{stmaryrd}
+\usepackage{listings}
+
+\begin{document}
+
+\title{CS 350 Notes}
+\author{Matthew Visser}
+\date{Oct  6, 2011}
+\maketitle
+
+\section{Processes}
+
+The kernel keeps track of who made a process, resources it holds, address space,
+\textit{etc}. This is stored in a struct called the \emph{process control
+block}.
+
+\texttt{struct thread} contains a lot of information about a running process as
+well, but the subprocess that is a thread.
+
+A process with one thread is called a \emph{sequential process}. A process with
+more than one thread is called a \emph{concurrent process}.
+
+\subsection{Timesharing}
+
+Context switching happens inside the kernel. When a thread enters the kernel,
+this is an opportunity to do a context switch.
+
+The role of the timer interrupt is to make sure that a thread periodically
+enters the kernel. Pre-emption can still happen any time a thread enters the
+kernel.
+
+
+\subsection{System Calls for Process Management}
+
+See slide 35 of \texttt{proc.pdf}.
+
+\begin{description}
+	\item[\texttt{fork}] creates a clone of the calling process. Fork returns
+		from both the calling process, \textit{i.e.}, the original one, and the
+		child process, \textit{i.e.}, the new one. When it returns, if it is in
+		the child process, it returns 0, if it is the parent, it returns the
+		process ID of the new process.
+	\item[\texttt{execv}] replaces the address space of the calling process with
+		an address space loaded from an executable file.
+	\item[\texttt{waitpid}] allows a process to wait for another process to
+		finish.
+	\item[\texttt{getpid}] gets the process id
+	\item[\texttt{getusage}] tells you how many resources you are using and how
+		much.
+\end{description}
+
+
+There is a distinction between \emph{kernel threads} and \emph{user
+threads}.  Kernel threads are dispatched by the kernel. User threads are
+possibly not. User threads do not get pre-empted because they are in user-space,
+so they need to yield to each other. The reason for having these user threads is
+because kernel threads are fairly heavy-weight and user threads are lighter.
+Sometimes, operating systems don't support multiple threads per user process as
+well.  There are some threads used by the kernel for kernel ``housekeeping'' only.
+
+\section{Memory}
+
+\subsection{Virtual vs Physical Addresses}
+
+Memory has both physical and virtual addresses.
+\begin{itemize}
+	\item physical addresses
+		\begin{itemize}
+			\item Physical addresses are provided by the machine.  There is only
+				one physical address per machine.
+			\item The size of the physical address determines the amount of
+				addressable memory.
+			\item MIPS has 32-bits, so we can only have $2^{32} \text{bytes} = 4
+				\text{GB}$ of physical memory.
+		\end{itemize}
+	\item Virtual addresses
+		\begin{itemize}
+			\item There is one virtual address space \emph{per process}.
+		\end{itemize}
+	\item Mapping between physical and virtual addresses are managed by the
+		operating system.
+\end{itemize}
+
+Advantages for virtual memory are:
+\begin{itemize}
+	\item Convenience --- all processes start at address 0.
+	\item Easier to do paging.
+	\item Protection and isolation of processes --- the kernel can make sure
+		that processes can't access other processes memory, or the kernel's
+		memory.
+	\item Flexibility for the kernel to manage memory.
+\end{itemize}
+
+Virtual addresses are 32 bits, just like physical addresses.
+
+What's in virtual address space?
+\begin{itemize}
+	\item text --- program code and read-only memory.
+	\item data --- heap memory.
+	\item stack --- starts at an address (\texttt{0x7fffffff}) and grows down.
+\end{itemize}
+
+\subsection{Address Translation}
+
+\begin{itemize}
+	\item Hardware provides a \emph{memory management unit (MMU)} which includes
+		a \emph{relocation register}.
+	\item In \emph{dynamic relocation}, the processes are loaded in a continuous
+		block of memory. The OS puts the start address of the memory in the
+		relocation register.
+	\item The \emph{limit register} makes sure that the virtual address doesn't
+		go over the amount of memory allocated for the process.
+	\item There is more than one address translation per instruction. One for
+		translating the address of the instruction, and any more for any
+		addresses the instruction needs. This means that the OS can't be too
+		involved, and this is why we have the MMU, which is fast because it's
+		hardware.
+	\item \emph{External fragmentation} can happen in dynamic relocation. If we
+		don't have enough continuous space in physical memory, then we have a
+		problem. There are heuristics for avoiding this. These are:
+		\begin{itemize}
+			\item First fit --- take the first section that fits
+			\item Best fit --- take the smallest continuous section possible
+			\item Worst fit -- take the largest continuous section possible
+		\end{itemize}<++>
+\end{itemize}<++>
+
+\end{document}
+% vim: tw=80
