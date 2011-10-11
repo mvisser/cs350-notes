@@ -1,0 +1,201 @@
+\documentclass[12pt]{article}
+\usepackage{geometry}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{mathrsfs}
+\usepackage{parskip}
+\usepackage{enumerate}
+\usepackage{stmaryrd}
+\usepackage{listings}
+\usepackage{fullpage}
+
+\begin{document}
+
+\title{CS 350 Notes}
+\author{Matthew Visser}
+\date{Oct 11, 2011}
+\maketitle
+
+\section{Paging}
+
+Page size $p$, virtual address $v$. Page sizes are always a power of two.
+
+Page number:
+\begin{equation}
+	\left \lfloor \frac{v}{p} \right \rfloor
+\end{equation}
+
+This can be represented by \texttt{v >> y}.
+
+Offset is
+\begin{equation}
+	v \pmod p
+\end{equation}
+
+\subsection{A Page Size Example}
+We have a 32-bit address, and the offset is 10 bits.  How many bits do we have
+for the page number? What's the page size? How many pages do we have in an
+address space?
+
+\begin{enumerate}
+	\item We have 22 bits for the page number.
+	\item Page size is $2^10 = 1\text{KB}$ bytes.
+	\item Number of pages are $2^22 = 4\text{M}$ pages. 
+\end{enumerate}
+
+There are some advantages to have small pages
+\begin{itemize}
+	\item Reduce fragmentation
+	\item more efficient memory usage
+\end{itemize}
+but there are some disadvantages
+\begin{itemize}
+	\item large page table.
+	\item processes have many pages, always doing lookups.
+\end{itemize}
+Typical page sizes are 256 bytes --- 8 kB.
+
+\section{Using Page Tables}
+
+The kernel writes the address of the page table for a process in the \emph{page table
+base register}.  When the MMU wants to use address lookup it 
+\begin{itemize}
+	\item looks in the page table base register for the page table,
+	\item divide the address into a page number and offset,
+	\item perform lookup on the page,
+	\item and then construct the physical address.
+\end{itemize}
+See diagram on slide 7 of \texttt{vm.pdf}.
+
+There are some things in place to protext memory:
+\begin{itemize}
+	\item The kernel can set the \emph{valid bit} of addresses set to 0.
+	\item The MMU can enforce a read only bit as well, so a program can't write
+		to memory that is read only.
+	\item Many MMU's have a bit called the \emph{no-execute bit}.
+\end{itemize}
+
+What the kernel does with the page table:
+\begin{itemize}
+	\item Saves the state of the page table on every context switch.
+	\item create and manage the page tables
+	\item manage physical memory
+	\item handle MMU errors
+\end{itemize}
+
+The MMU needs to
+\begin{itemize}
+	\item translate addresses.
+	\item check for and raise exceptions
+\end{itemize}
+
+The array with an entry for each frame is called the \emph{core map}.
+
+\subsection{Midterm Problem on Address Translation}
+
+From the winter 2008 midterm.
+
+\textbf{Page table of process}: $p$.
+
+The process has 9 pages numbered 0-8.
+
+\begin{center}
+	\begin{tabular}{|c|r|}
+		\hline
+		Page Number & Physical Address \\
+		\hline
+		0 & 0x8d10\\
+		1 & 0x1004\\
+		2 & 0x004a\\
+		3 & 0x5500\\
+		4 & 0x2220\\
+		5 & 0x2221\\
+		6 & 0x2222\\
+		7 & 0x222a\\
+		8 & 0x5558\\
+		\hline
+	\end{tabular}
+\end{center}
+
+Doing this translation with a 4 bit offset, we get the following.
+\begin{center}
+	\begin{tabular}{|c|c|}
+		\hline
+		Virtual Addresses & Physical Address\\
+		\hline
+		0x00003a8 & 0x5500a8 \\
+		0x0001004 & NO TRANSLATION \\
+		0x0000022 & 0x8d1022 \\
+		\hline
+	\end{tabular}
+\end{center}
+
+Doing this with a 12-bit offset, we get:
+\begin{center}
+	\begin{tabular}{|c|c|}
+		\hline
+		Virtual Addresses & Physical Address\\
+		\hline
+		0x00003a8 & 0x8d103a8 \\
+		0x0001004 & 0x1004004 \\
+		0x0000022 & 0x8d10022 \\
+		\hline
+	\end{tabular}
+\end{center}
+
+\subsection{Remaining Issues}
+
+We have a few issues
+\begin{itemize}
+	\item address translation speed
+	\item sparseness
+	\item where do we put the kernel in this picture?
+\end{itemize}
+
+\subsubsection{Speed of Address Translation}
+
+\begin{itemize}
+	\item Execution of each machine instruction may involve one or more
+		translations.
+		\begin{itemize}
+			\item one for fetching an instruction
+			\item One or more for instruction operands
+		\end{itemize}
+	\item Every translation is a memory lookup, which is slow.
+	\item We can get around this using a \emph{translation look-aside buffer
+		(TLB)} in the MMU.
+\end{itemize}
+
+\subsubsection{The TLB}
+\begin{itemize}
+	\item Each entry contains a (page number, frame number) pair.
+	\item if the address translation is cached in the TLB, then the page
+		table is avoided.
+	\item If the hardware controls this TLB, then the hardware does the address
+		translation using it (unless there is a page fault).
+	\item If this is a software TLB, then the kernel has to keep this page table
+		cached.
+	\item Some MMUs load the TLB themselves, others raise an exception if a page
+		number isn't int he TLB, and the kernel must load the translation to it.
+		\begin{itemize}
+			\item MIPS has a software controlled TLB.
+		\end{itemize}
+	\item The hardware dictates the format of the TLB. The kernel gets to
+		control how the TLB is used and what is loaded to it in a software
+		controlled TLB.
+	\item TLB is much faster because it's a simple hardware lookup.
+	\item If we switch processes, there will be a lot of exceptions thrown
+		because old mappings will be populated.
+		\begin{itemize}
+			\item We either accept the faults, or
+			\item We flush the TLB every time we have a context switch.
+		\end{itemize}
+\end{itemize}
+
+\subsubsection{The MIPS TLB}
+
+\dots or not. Next time!
+
+\end{document}
+% vim: tw=80
