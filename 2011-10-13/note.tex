@@ -1,0 +1,104 @@
+\documentclass[12pt]{article}
+\usepackage{geometry}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{mathrsfs}
+\usepackage{parskip}
+\usepackage{enumerate}
+\usepackage{stmaryrd}
+\usepackage{listings}
+\usepackage{fullpage}
+
+\begin{document}
+
+\title{CS 350 Notes}
+\author{Matthew Visser}
+\date{Oct 13, 2011}
+\maketitle
+
+\section{Memory Management}
+\subsection{TLB}
+
+The TLB works because we have
+\begin{itemize}
+	\item Large pages
+	\item Locality
+		\begin{itemize}
+			\item spacial --- memory is in regions. If you're accessing one
+				region, you're probably going to be accessing regions next to
+				it.
+			\item temporal
+		\end{itemize}
+\end{itemize}
+
+We will formalize the notion of locality later.
+
+What does an entry in the MIPS TLB look like?
+
+The MIPS page size is 4kB = $2^{12}$ bytes $\implies$ offset is $12$ bits.
+
+Have 
+\begin{itemize}
+	\item first word
+		\begin{itemize}
+			\item 20 bits Virtual Page Number (VPN)
+			\item 6 bits ASID --- address space ID
+			\item 6 bits empty
+		\end{itemize}
+	\item Second Word
+		\begin{itemize}
+			\item 20 bits PFN
+			\item 1 bit N --- not cacheable
+			\item 1 bit D --- dirty
+				\begin{itemize}
+					\item changes to 1 when written to.
+					\item if 0, can be trusted
+				\end{itemize}
+			\item 1 bit V --- Valid bit
+			\item 1 bit G --- Global bit. Tells the MMU to ignore the ASID when
+				1.
+			\item 8 bits null.
+		\end{itemize}
+\end{itemize}
+
+We can modify the TLB with the functions
+\begin{itemize}
+	\item \texttt{TLB\_Write}
+	\item \texttt{TLB\_Random}
+	\item \texttt{TLB\_Read}
+	\item \texttt{TLB\_Probe}
+\end{itemize}
+
+\subsection{Segmentation}
+
+Different parts of the program are segments. The different segments are loaded
+into different parts of physical memory. The segments are described in the
+\emph{segment table}. This has information on the physical address of the
+segment. See slide 18 of \texttt{vm.pdf}.
+
+The segment table points to the page table when we want to combine them. See
+slide 20 for a diagram.
+
+The segmentation addresses the problem of sparse addresses.
+
+We don't, however, have segmentation in OS/161.
+
+\subsection{Address Translation}
+
+\begin{itemize}
+	\item The MMU translates addresses
+	\item If there is an error, we have a TLB fault (called an \emph{address
+		exception}).
+	\item The \texttt{vm\_fault} function handles this exception for the kernel.
+		It uses information fromt he current process' \texttt{addrspace} to
+		construct and load a TLB entry for the page.
+	\item On return from fault handling, the processor re-tries to do the
+		previous action.
+\end{itemize}
+
+Virtual addresses must start at an address that is divisible by the page size.
+In our representation, last three digits of hex must be 0.
+
+\end{document}
+% vim: tw=80
