@@ -1,0 +1,111 @@
+\documentclass[12pt]{article}
+\usepackage{geometry}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{mathrsfs}
+\usepackage{parskip}
+\usepackage{enumerate}
+\usepackage{stmaryrd}
+\usepackage{listings}
+\usepackage{fullpage}
+
+\begin{document}
+
+\title{CS 350 Notes}
+\author{Matthew Visser}
+\date{Oct 18, 2011}
+\maketitle
+
+Mistake from last class: the volatile should go by the pointer.
+
+\section{Shared Virtual Memory}
+
+Shared object files are files like \texttt{*.so} or \texttt{*.dll}. These are
+shared libraries that are loaded into memory.
+
+\subsection{Kernel Address Space}
+
+Having the kernel use virtual addresses is confusing, because the kernel needs
+the virtual address mapping to work before it can use it. Because of this, we
+just have the kernel use physical addresses.
+
+The kernel can have its own page table, but it's tricky to do so. If the kernel
+gets an address, it's physical, so it must reverse the mapping first.
+
+Linux and most other OS's have a shared segment for every process that holds an
+address space in the kernel. MIPS helps the OS do this by reserving the upper
+half of address space for the kernel. The upper half is divided into three
+kernel segments: \texttt{kseg0}, \texttt{kseg1}, \texttt{kseg2}.
+
+The MIPS processor helps by
+\begin{enumerate}
+	\item Addresses $\ge 0x80000000$ are \emph{privileged}.
+	\item \texttt{kseg0}: virtual address \texttt{0x80000000} is mapped to
+		physical address \texttt{0x00000000} without a TLB.
+		\begin{itemize}
+			\item This makes booting the machine a lot easier. We now know
+				exactly what address the machine starts executing at, so we can
+				put our boot loader there.
+		\end{itemize}
+	\item \texttt{kseg1} starts at \texttt{0xa0000000} and is mapped to
+		\texttt{0x00000000} without a TLB and bypassing CPU cache. We have this
+		segment for IO devices.
+	\item \texttt{kseg2} is there for any addresses in \texttt{kseg0} that are
+		over the address range. This is not used in OS/161.
+\end{enumerate}
+
+\textbf{Midterm up to slide 28 of \texttt{vm.pdf}}.
+
+\section{Notes About Midterm}
+
+\begin{tabular}{lp{400pt}}
+	Date: & Oct 25\\
+	Time: & 4:30 - 6:30\\
+	Notes: & There is no lecture on this date. Instead, office hours are held
+	from 1000h to 1100h in DC 3349, not in the lab.\\
+\end{tabular}
+
+How to study for the midterm?
+
+There are some sample midterms on the course web page.
+
+\section{Assignment 2 Discussion}
+
+User programs to test with are in \texttt{testbin}. Different programs use
+different system calls.
+
+\subsection{Write and Exit}
+
+Get write to console and \texttt{\_exit} working and run palin.
+\begin{enumerate}
+	\item Define a handler function and call it from
+		\texttt{mips\_syscall}
+	\item Copy data from user space.
+	\item Do Logic of \texttt{write} or \texttt{\_exit}.
+\end{enumerate}
+
+How do we print data to the console? We use \texttt{kprintf}.
+\begin{enumerate}
+	\item \texttt{kprintf} uses a lock to write strings atomically.
+	\item Calls \texttt{putch()} which puts one character to the console. The
+		name of the console is called \texttt{/dev/generic/console} or
+		``\texttt{con:}''. This device is \emph{asynchronous}.
+\end{enumerate}
+
+How do we copy data from user space into the kernel?
+
+A kernel can dereference a pointer from user space because the kernel is mapped
+into the address space of every process. We need to copy data because
+\texttt{kprintf} could cause our thread to sleep. We might also want data to be
+aligned in the kernel.
+
+We can copy using \texttt{copyin/copyout} and \texttt{copyinstr/copyoutstr}.
+These copy functions call \texttt{memcpy}. The string copy functions call
+\texttt{copystr} which is like \texttt{strncpy}.
+
+UIO Move $\to$ moves data from/ to kernel buffer and user level buffer.
+Specified in an uio struct.
+
+\end{document}
+% vim: tw=80
