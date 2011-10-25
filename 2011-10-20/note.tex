@@ -1,0 +1,178 @@
+\documentclass[12pt]{article}
+\usepackage{geometry}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{mathrsfs}
+\usepackage{parskip}
+\usepackage{enumerate}
+\usepackage{stmaryrd}
+\usepackage{listings}
+\usepackage{qtree}
+
+\begin{document}
+
+\title{CS 350 Notes}
+\author{Matthew Visser}
+\date{Oct 20, 2011}
+\maketitle
+
+\section{Assignment 2}
+
+First things to do:
+\begin{itemize}
+	\item Write to console.
+	\item Get \texttt{\_exit} working.
+\end{itemize}
+
+\subsection{\texttt{\_exit}}
+
+\begin{itemize}
+	\item Clean up process
+		\begin{itemize}
+			\item thread
+			\item Address space
+			\item more stuff as assignment progresses like process numbers, FDs,
+				\texttt{etc}.
+		\end{itemize}
+	\item Start by looking at \texttt{thread\_exit}.
+\end{itemize}
+
+\subsection{Implement Argument Passing}
+
+We need programs main to get the arguments:
+\begin{verbatim}
+int main (int argc, char **argv);
+\end{verbatim}
+
+\textbf{Note}: look at the hints page. The command to run a program and give it
+arguments in os/161 is the \texttt{p command arg1 arg2} command.
+
+Issuing the \texttt{p} command calls the function in the kernel
+\texttt{cmd\_progthread()} which calls the function
+\texttt{run\_program()}.
+
+For \texttt{cmd\_progthread}, it has two arguments. The first pointer is to
+\texttt{argv}. Make sure \texttt{argv} has a \texttt{NULL} at the end of it.
+\texttt{argc} is the count of the number of arguments (or the last index in
+\texttt{argv}.
+
+We can place \texttt{argv}:
+\begin{itemize}
+	\item On the stack
+	\item In its own segment
+	\item somewhere crazy (as long as it works)
+\end{itemize}
+Look at \texttt{dumbvm} and see how it creates a stack, especially if you're
+putting arguments on the stack.
+
+After copying \texttt{argv} and \texttt{argc}, we have to make the program aware
+of them by putting the arguments in \texttt{a0,a1}. To see how to do this, look
+at \texttt{run\_program()}, and \texttt{md\_usermode()}. The second function is
+the one that switches from kernel-mode to user-mode.
+
+\subsection{System Calls}
+
+\begin{itemize}
+	\item Files
+		\begin{itemize}
+			\item \texttt{open}
+			\item \texttt{close}
+			\item \texttt{write}
+		\end{itemize}
+	\item Processes
+		\begin{itemize}
+			\item \texttt{fork}
+			\item \texttt{waitpid}
+			\item \texttt{\_exit}
+			\item \texttt{execv}
+		\end{itemize}
+	\item Exceptions
+\end{itemize}
+
+Do Files (without \texttt{execv} and processes first, in whatever order. Then do
+exceptions and \texttt{execv}.
+
+\subsubsection{File-Related System Calls}
+
+\Tree
+[
+.{\texttt{vfs.h} --- Virtual File System}
+{EMUFS --- root file system}
+{SFS --- \texttt{DISK1.img}, \texttt{DISK2.img}}
+{Console Device}
+]
+
+The File System Interface:
+\begin{itemize}
+	\item \texttt{vfs\_open( path, flags, vnode )}
+		\begin{itemize}
+			\item \texttt{path} is the path to the file
+			\item \texttt{flags} are the read-write flags
+			\item \texttt{vnode} is returned, and is an abstraction of an open
+				file.
+		\end{itemize}
+	\item \texttt{vfs\_close( vnode )} --- closes a file
+\end{itemize}
+
+Look at the file \texttt{vnode.h} for file operations. Kernel-level file
+operations are done for you, but the user level file operations must be
+implemented. Look at slides 1 to 7 of the file system notes.
+
+\subsubsection{Process System Calls}
+
+Need to write \texttt{md\_forkentry}.
+
+\section{Address Space}
+
+\subsection{Loading a Program into Address Space --- ELF Files}
+
+\begin{itemize}
+	\item Format for executables is called ELF. It is used by the kernel to
+		create the address space for a process.
+	\item And ELF file contains
+		\begin{itemize}
+			\item An \emph{ELF Header}
+			\item Program headers
+				\begin{itemize}
+					\item Contains one header per segment.
+					\item The header contains the following:
+						\begin{itemize}
+							\item Virtual address of segment
+							\item Length of the segment
+							\item Location of the start of the image in ELF file
+							\item Length of the image in ELF file.
+						\end{itemize}
+				\end{itemize}
+			\item \emph{Segments} $1\dots n$.
+			\item \emph{Section Headers}
+		\end{itemize}
+	\item A \emph{segment} is a chunk of data to be loaded into the address
+		space.
+	\item Kernel must fill rest of segment with 0's.
+	\item OS/161 expects the ELF file to have two segments:
+		\begin{itemize}
+			\item Program code
+			\item Data
+		\end{itemize}
+\end{itemize}
+
+\subsection{ELF Sections and Segments}
+
+\begin{itemize}
+	\item The ELF file contains different sections
+		\begin{itemize}
+			\item \texttt{.text} --- program code
+			\item \texttt{.rodata} --- read-only global data
+			\item \texttt{.data} --- initialized global data
+			\item \texttt{.bss} --- uninitialized global data
+			\item \texttt{.sbss} --- small uninitialized global data
+		\end{itemize}
+	\item Note all of these are present in every ELF file.
+	\item \texttt{.text} and \texttt{.rodata} for the \texttt{text} segment. The
+		rest for the \texttt{data} segment.
+\end{itemize}<++>
+
+
+\end{document}
+% vim: tw=80
