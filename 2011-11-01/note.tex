@@ -1,0 +1,49 @@
+\documentclass[12pt]{article}
+\usepackage{geometry}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{mathrsfs}
+\usepackage{parskip}
+\usepackage{enumerate}
+\usepackage{stmaryrd}
+\usepackage{listings}
+\usepackage{fullpage}
+
+\begin{document}
+
+\title{CS 350 Notes}
+\author{Matthew Visser}
+\date{Nov  1, 2011}
+\maketitle
+
+\section{Exploiting Secondary Storage}
+
+We have memory and we also have a hard disk that we can utilize.  We can write
+memory pages to disk instead of RAM to increase our virtual memory size. This is
+called \emph{paging}.
+
+We utilize a \emph{two-level page table} to keep track of where the memory is.
+See slide 46 of \texttt{vm.pdf}.
+
+We can also use an \emph{inverted page table}.
+\begin{itemize}
+	\item We have one inverted table per frame of physical memory. 
+	\item Because page tables are expensive, we don't want to go to them for
+		every address translation. 
+	\item If we have a TLB miss, we will first look in the inverted page table.
+	\item It is highly likely that the memory we want is already in memory.
+\end{itemize}
+
+Once we have paging set up, how do we determine which pages we page in and out?
+We could use a
+\begin{itemize}
+	\item FIFO approach --- pages that were loaded first get un-loaded first.
+	\item Optimal --- predict the future and keep the pages we need
+		(unrealistic, but would be nice).
+	\item Random replacement --- just pick a random one.
+\end{itemize}
+The \emph{page reference string} tells us what pages we have.
+
+\end{document}
+% vim: tw=80
