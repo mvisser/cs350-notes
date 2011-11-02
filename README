@@ -1,2 +1,5 @@
-Currently just TeX source for my notes for this class. Hopefully soon
-I'll add a makefile and maybe put PDFs in the repository.
+TeX source and PDF files for notes for the CS 350 class taken in the Fall of
+2011 instructed by Ashraf Aboulnaga.
+
+You may redistribute these notes, but please keep the author name and date in
+the title so people know who the source is.
