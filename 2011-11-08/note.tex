@@ -1,0 +1,119 @@
+\documentclass[12pt]{article}
+\usepackage{geometry}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{mathrsfs}
+\usepackage{parskip}
+\usepackage{enumerate}
+\usepackage{stmaryrd}
+\usepackage{listings}
+\usepackage{fullpage}
+
+\begin{document}
+
+\title{CS 350 Notes}
+\author{Matthew Visser}
+\date{Nov  8, 2011}
+\maketitle
+
+\section{Paging}
+
+\subsection{Prefetching}
+
+\begin{itemize}
+	\item Prefetching means we move virtual pages before we need them
+	\item Same or more amount of work, but decreases apparent latency
+\end{itemize}
+
+\subsection{Page Size}
+
+\begin{itemize}
+	\item Large page sizes have less paging.
+	\item Larger pages have fragmentation and an increased chance of paging
+		memory you don't need.
+	\item Super pages allow you to change page size at runtime.
+\end{itemize}
+
+\subsection{How much memory does a process need?}
+
+Working set: $W$, Resident Set $R$.
+\[ W \subseteq R \]
+
+The working set is the heavily used portion of the program's address space.
+
+The program's resident set is the set of pages in memory.
+
+We define $W(s,\Delta)$ to be the set of pages referenced by a process during a
+time interval $(t-\Delta,t)$. This is the working set of time $t$.
+
+\subsection{Thrashing and Load Control}
+
+We need a good level of the number of processes:
+\begin{itemize}
+	\item Too low and we idle resources
+	\item Too high and we have too few resources per process.
+	\item A system spending too much time is said to be \emph{thrashing.}
+	\item Thrashing can be cured by shedding load:
+		\begin{itemize}
+			\item killing processes
+			\item Suspending and swaping out processes.
+		\end{itemize}
+	\item Performance drops \emph{very} quickly when it starts thrashing.
+	\item What processes do we suspend?
+		\begin{itemize}
+			\item Low priority
+			\item blocked
+			\item Large (frees lots of resources)
+		\end{itemize}
+\end{itemize}
+
+\section{Copy-On-Write}
+
+The reason to have this is that often, you want to duplicate an address space,
+\textit{e.g.} \texttt{fork()}.
+
+The way it works is it doesn't copy pages at first, but when one page tries to
+write, then it copies.
+
+This is useful for filesystem snapshots as well.
+
+\section{Program Execution}
+
+A running thread can be modeled as CPU bursts and IO bursts.
+
+Threads are scheduled when:
+\begin{itemize}
+	\item They yield
+	\item they are pre-empted after their quantum
+\end{itemize}
+
+Properties we want:
+\begin{itemize}
+	\item Enforce priority
+	\item prevent starvation
+	\item be fair
+	\item minimize wait time
+	\item maxmize throughput, better (minimal) turn-around time.
+	\item Enforce CPU quota
+\end{itemize}
+
+There are two basic strategies:
+\begin{itemize}
+	\item FCFS --- a FIFO redy queue, non-preemptive
+	\item Round Robin
+	\item SHortest Job First
+		\begin{itemize}
+			\item Non-preemptive
+			\item ready threads are scheduled according to the length of their
+				next CPU burst.
+			\item Requires knowledge of burst length:
+				\[B_{i+1} = \alpha b_i + (1-\alpha)B_i\]
+				where $B_i$ is the predicted length of the CPU burst and
+				$b_i$ is the actual length. $0 \le \alpha \le 1$.
+		\end{itemize}
+\end{itemize}
+
+
+\end{document}
+% vim: tw=80

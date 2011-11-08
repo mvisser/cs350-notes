@@ -1,0 +1,123 @@
+\documentclass[12pt]{article}
+\usepackage{geometry}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{mathrsfs}
+\usepackage{parskip}
+\usepackage{enumerate}
+\usepackage{stmaryrd}
+\usepackage{listings}
+\usepackage{fullpage}
+
+\newtheorem{defn}{Definition}[subsection]
+
+\begin{document}
+
+\title{CS 350 Notes}
+\author{Matthew Visser}
+\date{Nov  3, 2011}
+\maketitle
+
+\section{Paging}
+
+\subsection{Page Replacement}
+
+\begin{defn}
+	\emph{Locality} is a property of the page reference string.  
+	\begin{description}
+		\item[Temporal] pages that are used will likely be used again.
+		\item[Spacial] pages ``close'' to those that have been used will
+			probably be used.
+	\end{description}
+\end{defn}
+
+\begin{itemize}
+	\item A page that has been recently used will probably be used in the near
+		future.
+
+	\item Frequency-based page replacement
+		\begin{itemize}
+			\item Look at the pages that are used the most, don't remove them
+				and remove pages used less.
+			\item Not practical since the MMU would need to increment some
+				counter, which it can't do.
+			\item Old references are never forgotten
+			\item New pages may be paged out soon after since the counts for old
+				pages are higher
+		\end{itemize}
+	\item Least Recently Used
+		\begin{itemize}
+			\item Based on principle of temporal locality. Replace page that
+				hasn't been used in a long time
+			\item TO implement, it is necessary to track each page's recency.
+			\item Although LRU and variants have many applications, it is not
+				considered practical for virtual memory. (This is because the
+				MMU still needs to keep track of what was used.) It is
+				inefficient to keep track of LRU.
+		\end{itemize}
+	\item The \emph{use bit} or \emph{reference bit} is a bit found in the TLB
+		\begin{itemize}
+			\item It is set by the MMU each time the page is used
+			\item Can be read and modified by OS
+			\item OS copies information into page table
+		\end{itemize}
+	\item What if the MMU doesn't have a use bit?
+		\begin{itemize}
+			\item The kernel can emulate the bit at the cost of extra
+				exceptions.
+				\begin{enumerate}
+					\item When a page is loaded, mark it as invalid.
+					\item If a program attempts to access the page, an exception
+						will occur.
+					\item In its exception handler, the OS sets the page's
+						simulated use bit to true, and marks the page valid.
+				\end{enumerate}
+			\item This technique requires that the OS maintain extra information
+				for each page.
+		\end{itemize}
+	\item Clock Replacement Algorithm
+		\begin{itemize}
+			\item The clock algorithm is one of the simplest algorithms to
+				exploit the use bit
+			\item Identical to FIFO except that a page is skpped if its use bit
+				is set.
+			\item Can be visualized as a victim pointer that cycles through the
+				page frames. The pointer moves whenever a replacement is
+				necessary.
+		\end{itemize}
+	\item Enchanced Second Chance Algorithm
+		\begin{itemize}
+			\item prefer to unload pages that are not recently used and not
+				modified.
+			\item If there are no such pages, look for not recently used but
+				modified.
+			\item If there are no such pages, another run through the algorithm
+				will find one because we reset the use bits as we're going
+				through.
+		\end{itemize}
+\end{itemize}
+
+\subsection{Page Cleaning}
+
+\begin{defn}{Cleaning}
+
+	Cleaning a page means copying the page to secondary storage.
+
+\end{defn}
+
+\begin{description}
+	\item[Synchronous] happens at the time the page is replaced, during fault
+		handling. Page is first cleaned by copying it to secondary storage then
+		a new page is brought in to replace it.
+	\item[Asynchronous] happens before a page is replaced, so that page fault
+		handling can be faster.
+		\begin{itemize}
+			\item Asynchronous cleaning may be implemented by dedicated OS page
+				cleaning threads that sweep through in-memory pages cleaning
+				modified pages.
+		\end{itemize}
+\end{description}
+
+\end{document}
+% vim: tw=80
