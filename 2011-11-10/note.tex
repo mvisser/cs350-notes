@@ -1,0 +1,54 @@
+\documentclass[12pt]{article}
+\usepackage{geometry}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{mathrsfs}
+\usepackage{parskip}
+\usepackage{enumerate}
+\usepackage{stmaryrd}
+\usepackage{listings}
+\usepackage{fullpage}
+
+\begin{document}
+
+\title{CS 350 Notes}
+\author{Matthew Visser}
+\date{Nov 10, 2011}
+\maketitle
+
+\section{Scheduling Algorithms}
+
+\subsection{Shortest Job First}
+
+\begin{itemize}
+	\item Non-preemptive --- be careful
+	\item Could allow starvation for long-running jobs
+	\item Requires calculating estimates of CPU burst lengths.
+\end{itemize}
+
+
+\subsection{Comparison of Algorithms}
+
+The \emph{average turn-around time} is the time from when a job enters the
+system, until when it leaves, \textit{i.e.} the time it waits added to the time
+it takes to execute.
+
+\subsection{Priority}
+
+Sometimes we want some processes to have higher priority over others. We give
+them a priority level, and put the processes in queues based on their priority.
+The problem with this is that threads that have low priority may starve.
+
+\section{Assignment 3}
+
+\begin{enumerate}
+	\item Get back a working kernel.
+	\item Collect TLB statistics.
+	\item TLB management.
+	\item Read only text segment.
+	\item Load pages on demand.
+\end{enumerate}
+
+\end{document}
+% vim: tw=80
