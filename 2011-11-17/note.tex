@@ -1,0 +1,49 @@
+\documentclass[12pt]{article}
+\usepackage{geometry}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{mathrsfs}
+\usepackage{parskip}
+\usepackage{enumerate}
+\usepackage{stmaryrd}
+\usepackage{listings}
+\usepackage{fullpage}
+
+\begin{document}
+
+\title{CS 350 Notes}
+\author{Matthew Visser}
+\date{Nov 17, 2011}
+\maketitle
+
+\section{Inter-Process Communication}
+
+\subsection{Sockets}
+
+\begin{itemize}
+	\item We use \emph{sockets} to create and accept connections.
+	\item See included code to see how it's done (buggy).
+	\item need to be careful with networking to machines of different
+		architectures.
+\end{itemize}
+
+\subsection{Pipes}
+
+\begin{itemize}
+	\item communicate data between two processes.
+	\item Can read and write with a pipe by creating file descriptors for the
+		pipe.
+	\item Can also create a named pipe.
+	\item We have message queues as well, which send and recieve messages.
+\end{itemize}
+
+\subsection{Signals}
+
+\begin{itemize}
+	\item Signals act like hardware interrupts for processes.
+	\item Always unidirectional.
+\end{itemize}<++>
+
+\end{document}
+% vim: tw=80
