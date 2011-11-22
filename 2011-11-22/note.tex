@@ -1,0 +1,62 @@
+\documentclass[12pt]{article}
+\usepackage{geometry}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{mathrsfs}
+\usepackage{parskip}
+\usepackage{enumerate}
+\usepackage{stmaryrd}
+\usepackage{listings}
+\usepackage{fullpage}
+
+\begin{document}
+
+\title{CS 350 Notes}
+\author{Matthew Visser}
+\date{Nov 22, 2011}
+\maketitle
+
+\section{Devices and Device Controllers}
+
+\begin{itemize}
+	\item Examples
+		\begin{itemize}
+			\item Network interface
+			\item graphics card
+			\item storage (disk, tape)
+			\item serial (mouse, keyboard)
+			\item sound
+			\item co-processors
+		\end{itemize}
+
+	\item How does the kernel talk to these devices? It talks to it through a
+		\emph{device driver}.
+
+	\item The driver talks to the device through a BUS.
+		\begin{itemize}
+			\item there are many kinds of BUS's.
+			\item PCI, ISA
+		\end{itemize}
+	\item A \emph{controller} has registers tha tit uses to interact with the
+		kernel:
+		\begin{itemize}
+			\item command --- how the kernel tells the device to do something
+			\item status --- the device writes to these and the kernel reads
+				from it so the device can tell the kernel what it's doing
+			\item data --- data that the kernel can send to the device
+		\end{itemize}
+	\item A device uses interrupts to tell the kernel that it's done a task, and
+		the kernel handles the interrupt to find out what to do next.
+	\item Kernel has to copy memory from the device back to memory and vice
+		versa, which takes a lot of CPU
+	\item Direct Memory Access (DMA) prevents the writing, and the controler is
+		smart enough to write its data to kernel memory directly without CPU
+		involvement.
+	\item The advantage of DMA is that the CPU isnt' busy with every device
+		acces. The disadvantage is that the hardware is now much more complex,
+		since the hardware must write to memory.
+\end{itemize}
+
+\end{document}
+% vim: tw=80
